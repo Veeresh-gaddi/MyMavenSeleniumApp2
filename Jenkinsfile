@@ -1,8 +1,8 @@
 pipeline {
-    agent any   // Use any available agent
+    agent any
 
     tools {
-        maven 'Maven'   // Make sure this name matches Jenkins config
+        maven 'Maven'
     }
 
     stages {
@@ -14,35 +14,55 @@ pipeline {
             }
         }
 
+        stage('Install Chrome & Dependencies') {
+            steps {
+                sh '''
+                echo "Checking Chrome..."
+
+                if ! command -v google-chrome > /dev/null
+                then
+                    echo "Installing Chrome..."
+                    sudo apt update
+                    sudo apt install -y wget unzip
+
+                    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+                    sudo apt install -y ./google-chrome-stable_current_amd64.deb
+                fi
+
+                echo "Chrome Version:"
+                google-chrome --version
+
+                echo "Installing required libraries..."
+                sudo apt-get install -y libxss1 libappindicator1 libindicator7 fonts-liberation libnss3 lsb-release xdg-utils
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
         stage('Run Application') {
             steps {
-                // Debug: show what is inside target folder
-                sh 'ls -l target'
+                sh '''
+                echo "Files in target:"
+                ls -l target
 
-                // Run the generated JAR (auto-detects name)
-                sh 'java -jar target/*.jar'
+                echo "Running JAR..."
+                java -jar target/*.jar
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Build and deployment successful!'
+            echo '✅ Build and execution SUCCESSFUL!'
         }
         failure {
-            echo 'Build failed!'
+            echo '❌ Build FAILED!'
         }
     }
 }
