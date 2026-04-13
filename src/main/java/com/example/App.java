@@ -3,27 +3,33 @@ package com.example;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class App {
     public static void main(String[] args) throws InterruptedException {
 
-        WebDriver driver = new ChromeDriver();
-        Thread.sleep(3000);
+        // Setup driver automatically
+        WebDriverManager.chromedriver().setup();
 
-        driver.get("http://practicetestautomation.com/practice-test-login/");
-        Thread.sleep(3000);
+        ChromeOptions options = new ChromeOptions();
 
-        driver.manage().window().maximize();
-        Thread.sleep(3000);
+        //  REQUIRED FOR JENKINS
+        options.addArguments("--headless=new");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--remote-allow-origins=*");
+
+        WebDriver driver = new ChromeDriver(options);
+
+        driver.get("https://practicetestautomation.com/practice-test-login/");
 
         driver.findElement(By.id("username")).sendKeys("student");
-        Thread.sleep(3000);
-
         driver.findElement(By.id("password")).sendKeys("Password123");
-        Thread.sleep(3000);
-
         driver.findElement(By.id("submit")).click();
-        Thread.sleep(3000);
+
+        System.out.println("Title: " + driver.getTitle());
 
         driver.quit();
     }
